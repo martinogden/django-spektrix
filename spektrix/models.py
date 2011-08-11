@@ -1,7 +1,12 @@
-from django.db import models
+import os
+import urllib2
+
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
-from django.conf import settings
+from django.core.files import File
+from django.core.files.temp import NamedTemporaryFile
+from django.db import models
 from django.template.defaultfilters import slugify
 
 from spektrix.managers import SpektrixManager
@@ -42,6 +47,32 @@ class BaseSpektrixEvent(models.Model):
 
     def __unicode__(self):
         return self.Name
+
+    def _sync_spektrix_image(self, image_field='image'):
+        """
+        Sync local image with remote Spektrix image
+
+        @param [String] image_field, name of image field
+        """
+        if not (self.ImageUrl and hasattr(self, image_field)):
+            return
+        try:
+            response = urllib2.urlopen(self.ImageUrl)
+        except urllib2.HTTPError:
+            return
+
+        im = getattr(self, image_field)
+        # We'll presume (tsk!) if the remote image is a different size
+        # then it's a different image and update our local image.
+        if not im or int(response.headers['content-length']) != im.size:
+            tmp = NamedTemporaryFile(delete=True)
+            tmp.write(response.read())
+            tmp.flush()
+
+            ext = os.path.splitext(self.ImageUrl)[-1]
+            filename = os.path.basename('%i%s' % (self.pk, ext))
+            im.save(filename, File(tmp), save=False)
+            return im
 
 
 class BaseSpektrixTime(models.Model):
