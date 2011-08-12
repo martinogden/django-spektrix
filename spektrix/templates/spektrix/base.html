@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title|title }}{% endblock title %}
+
+{% block body_class %}spektrix spektrix_{{ title }}{% endblock body_class %}
+
+
+{% block content %}
+
+    {% include 'spektrix/iframe.html' %}
+
+{% endblock content %}
