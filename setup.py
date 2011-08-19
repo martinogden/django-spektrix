@@ -14,7 +14,7 @@ setup(
     platforms=['OS Independent'],
     classifiers=CLASSIFIERS,
     install_requires=[
-        'Django>=1.3',
+        'django',
         'lxml',
     ],
     packages=find_packages(),
